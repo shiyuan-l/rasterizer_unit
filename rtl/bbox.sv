@@ -166,7 +166,12 @@ module bbox
     logic signed [SIGFIG-1:0]   box_R13S_retime[1:0][1:0];             // 2 Sets X,Y Fixed Point Values
     logic                           validTri_R13H_retime ;                 // Valid Data for Operation
     // End output for retiming registers
-
+    
+    // ********** Step 0:  Backface Culling**********
+    logic backface;
+    //Backfacing if (x1-x0)(y2-y1) > (x2-x1)(y1-y0)
+    assign backface = ((tri_R10S[1][0] - tri_R10S[0][0])*(tri_R10S[2][1]-tri_R10S[1][1]) > (tri_R10S[2][0] - tri_R10S[1][0])*(tri_R10S[1][1]-tri_R10S[0][1]));
+    
     // ********** Step 1:  Determining a Bounding Box **********
     // Here you need to determine the bounding box by comparing the vertices
     // and assigning box_R10S to be the proper coordinates
@@ -354,7 +359,7 @@ module bbox
         out_box_R10S[1][1] = (box_R10S[1][1] <= screen_RnnnnS[1]) ? rounded_box_R10S[1][1] : screen_RnnnnS[1];
 
         //Assertions to check BBox is not totally out of screen
-       if ((out_box_R10S[0][0] >= 0) && (out_box_R10S[0][1] >= 0) && (out_box_R10S[1][0] <= screen_RnnnnS[0]) && (out_box_R10S[1][1] <= screen_RnnnnS[1] && validTri_R10H))
+       if ((out_box_R10S[0][0] >= 0) && (out_box_R10S[0][1] >= 0) && (out_box_R10S[1][0] <= screen_RnnnnS[0]) && (out_box_R10S[1][1] <= screen_RnnnnS[1] && validTri_R10H && !backface))
             outvalid_R10H = 1'b1;
         else
             outvalid_R10H = 1'b0;       
